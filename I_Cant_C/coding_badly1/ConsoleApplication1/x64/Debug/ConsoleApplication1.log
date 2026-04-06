@@ -1,6 +1,1 @@
-﻿  ConsoleApplication1.cpp
-C:\Users\bmcca\Documents\Github\coding_badly\I_Cant_C\coding_badly1\ConsoleApplication1\ConsoleApplication1.cpp(9,5): error C2065: 'string': undeclared identifier
-C:\Users\bmcca\Documents\Github\coding_badly\I_Cant_C\coding_badly1\ConsoleApplication1\ConsoleApplication1.cpp(9,12): error C2146: syntax error: missing ';' before identifier 'x'
-C:\Users\bmcca\Documents\Github\coding_badly\I_Cant_C\coding_badly1\ConsoleApplication1\ConsoleApplication1.cpp(9,12): error C2065: 'x': undeclared identifier
-C:\Users\bmcca\Documents\Github\coding_badly\I_Cant_C\coding_badly1\ConsoleApplication1\ConsoleApplication1.cpp(11,17): error C2065: 'x': undeclared identifier
-C:\Users\bmcca\Documents\Github\coding_badly\I_Cant_C\coding_badly1\ConsoleApplication1\ConsoleApplication1.cpp(12,18): error C2065: 'x': undeclared identifier
+﻿  ConsoleApplication1.vcxproj -> C:\Users\bmcca\Documents\Github\coding_badly\I_Cant_C\coding_badly1\x64\Debug\ConsoleApplication1.exe

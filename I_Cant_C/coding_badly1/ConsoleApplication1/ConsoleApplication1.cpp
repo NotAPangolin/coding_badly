@@ -12,20 +12,6 @@ private:
     vector<vector<int>> board;
 
 public:
-    int* getTile(int coord[2]) {
-        return &board[coord[0]][coord[1]];
-    }
-
-    void newRandTile() {
-        // assumes board has empty space, if it doesnt, infinite while
-
-        int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
-        while (!getTile(coord) != 0) {
-            int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
-        }
-        *getTile(coord) = 2;
-    }
-
     Board2048() {
         board = {
             {0,0,0,0},
@@ -34,6 +20,39 @@ public:
             {0,0,0,0}
         };
     };
+
+    int* getTile(int coord[2]) {
+        cout << "Tile at [" << coord[0] << ", " << coord[1] << "] is '" << board[coord[0]][coord[1]] << "'\n";
+        return &board[coord[0]][coord[1]];
+    }
+
+    void newRandTile() {
+        // assumes board has empty space, if it doesnt, infinite while
+
+        // generate a random coordinate
+        int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
+
+        // while the tile at given coord
+        while (!(*getTile(coord) != 0)) {
+            int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
+        }
+        *getTile(coord) = rand() / (RAND_MAX / 4) == 1 ? 4 : 2;
+        cout << "now: ";
+        getTile(coord);
+    }
+
+    void inputUp() {
+        //do whatever
+    }
+    void inputDown() {
+        //do whatever
+    }
+    void inputLeft() {
+        //do whatever
+    }
+    void inputRight() {
+        //do whatever
+    }
 
     void draw() {
         for (int y = 0; y < 4; y++) {
@@ -47,15 +66,40 @@ public:
 
 
 int main() {
+    bool running = true;
     Board2048 myBoard;
 
     myBoard.newRandTile();
     myBoard.newRandTile();
-    myBoard.newRandTile();
-    myBoard.newRandTile();
-    myBoard.newRandTile();
 
-    myBoard.draw();
+    while (running) {
+        cout << "2048: \n";
+        myBoard.draw();
+        cout << "Your Move [wasd to move, p to quit]: ";
+
+        string user_input;
+        cin >> user_input;
+
+        //user_input = user_input[1];
+
+        if (user_input == "w") {
+            myBoard.inputUp();
+        } else if (user_input == "a") {
+            myBoard.inputLeft();
+        } else if (user_input == "s") {
+            myBoard.inputDown();
+        } else if (user_input == "d") {
+            myBoard.inputRight();
+        } if (user_input == "p") {
+            cout << "Quiting...";
+            running = false;
+            break;
+        }
+
+        myBoard.newRandTile();
+
+        cout << "\n\n";
+    }
 
     return 0;
 
