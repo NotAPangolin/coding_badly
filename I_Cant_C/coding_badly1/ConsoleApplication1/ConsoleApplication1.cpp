@@ -27,31 +27,75 @@ public:
     }
 
     void newRandTile() {
-        // assumes board has empty space, if it doesnt, infinite while
+        /* assumes board has empty space, if it doesnt, infinite while */
 
         // generate a random coordinate
         int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
 
-        // while the tile at given coord
+        // while the tile at given coord doesn't have a value of 0
         while (!(*getTile(coord) != 0)) {
+            // generate a new random coordinate
             int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
         }
+        // assign random value to generated coordinate
         *getTile(coord) = rand() / (RAND_MAX / 4) == 1 ? 4 : 2;
+
         cout << "now: ";
         getTile(coord);
     }
 
+    bool collapseInDir(int collapseVec[2]) {
+        /*
+        Iterates through all tiles in 4x4 grid
+        attempts to collapse each tile to the next based on the :param collapseVec:
+        returns whether or not any tiles were collapsed
+        */
+        int changed_tiles = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                //check tile exists
+                int this_tile = *getTile((int[2]){y, x});
+                if (this_tile == 0) { continue; }
+
+                //check tile is on border or non-interactable tile
+                int next_tile;
+                try {
+                    next_tile = *getTile((int[2]){y + collapseVec[1], x + collapseVec[0]});
+                    if (next_tile != 0 && next_tile != this_tile) { continue; }
+                } catch (exception) {
+                    continue;
+                }
+
+                // don't need to re-fetch next_tile as code will be continued if next_tile err'd
+
+                if (next_tile == this_tile) {
+                    *getTile((int[2]){y + collapseVec[1], x + collapseVec[0]}) = this_tile * 2;
+                    *getTile((int[2]){y, x}) = 0;
+                    ++changed_tiles;
+                }
+                
+            }
+        }
+        return changed_tiles != 0;
+    }
+    void fullCollapseInDir(int collapseVec[2]) {
+        // runs collapseInDir until no more collapsing can be done, should never require more than 4 collapses
+        for (int i=0; i < 4; i++) {
+            if (!collapseInDir(collapseVec)) {break;}
+        }
+    }
+
     void inputUp() {
-        //do whatever
+        fullCollapseInDir((int[2]){0, -1});
     }
     void inputDown() {
-        //do whatever
+        fullCollapseInDir((int[2]){0, 1});
     }
     void inputLeft() {
-        //do whatever
+        fullCollapseInDir((int[2]){-1, 0});
     }
     void inputRight() {
-        //do whatever
+        fullCollapseInDir((int[2]){1, 0});
     }
 
     void draw() {
