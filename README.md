@@ -1,7 +1,7 @@
 # coding_badly
 Figuring out how to do anything at all.
 
-This is a centralized storage space for all my projects while I learn to code
+This is a centralized storage space for all my projects while I learn to code.
 
 ## Roadmap for Tourists:
 There's a lot of stuff in here, and organizing all of it is a more monumental task than I currently have time for, so here's a list of some cool stuff to look at:
@@ -26,5 +26,7 @@ There's a lot of stuff in here, and organizing all of it is a more monumental ta
     - Java in `/JavaTesting`
     - react in `/react` (I have some better projects in react, which were made elsewhere)
 6. `/p5_trials`, `/raylib` include some attempts at using other rendering methods to do some low-level stuff and interact with graphics shaders
+
+*Note: Some projects have been graduated from here to the NotAPangolin/FullGames repo for being too big and high quality to stay here.
 
 **Note: there is some content in this repository which has been directly copied in from outside sources as reference, and is not my own work. I've tried to mark each of these clearly with the location they were sourced from.
