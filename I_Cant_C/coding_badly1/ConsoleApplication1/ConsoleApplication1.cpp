@@ -3,7 +3,10 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
+#include <conio.h>
 #include <random>
+#include <typeinfo>
 
 using namespace std;
 
@@ -22,29 +25,49 @@ public:
     };
 
     int* getTile(int coord[2]) {
-        cout << "Tile at [" << coord[0] << ", " << coord[1] << "] is '" << board[coord[0]][coord[1]] << "'\n";
+        //cout << "Tile at [" << coord[0] << ", " << coord[1] << "] is '" << board[coord[0]][coord[1]] << "'\n";
         return &board[coord[0]][coord[1]];
     }
-
-    void newRandTile() {
-        /* assumes board has empty space, if it doesnt, infinite while */
-
-        // generate a random coordinate
-        int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
-
-        // while the tile at given coord doesn't have a value of 0
-        while (!(*getTile(coord) != 0)) {
-            // generate a new random coordinate
-            int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
-        }
-        // assign random value to generated coordinate
-        *getTile(coord) = rand() / (RAND_MAX / 4) == 1 ? 4 : 2;
-
-        cout << "now: ";
-        getTile(coord);
+    int* getTile(int x, int y) {
+        //cout << "Tile at [" << x << ", " << y << "] is '" << board[x][y] << "'\n";
+        return &board[x][y];
     }
 
-    bool collapseInDir(int collapseVec[2]) {
+    bool newRandTile() {
+        // check that empty space exists
+        int nil_count = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                if (*getTile(x, y) == 0) {
+                    nil_count++;
+                }
+            }
+        }
+        if (nil_count == 0) {
+            return true;
+        }
+
+        // generate a random tile until you find an empty space
+        do {
+            // generate random coordinate
+            int coord[2] = { rand() / (RAND_MAX / 4), rand() / (RAND_MAX / 4) };
+
+            // If the value at that coordinate is 0, we're done
+            int val = *getTile(coord);
+            if (val == 0) {
+                // assign random value to generated coordinate
+                *getTile(coord) = rand() / (RAND_MAX / 4) == 1 ? 4 : 2;
+
+                //cout << "now: ";
+                getTile(coord);   
+                return false;
+            }
+
+            //cout << "had to rerandomize\n";
+        } while (true);
+    }
+
+    bool collapseInDir(int collapse_x, int collapse_y) {
         /*
         Iterates through all tiles in 4x4 grid
         attempts to collapse each tile to the next based on the :param collapseVec:
@@ -53,58 +76,88 @@ public:
         int changed_tiles = 0;
         for (int y = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++) {
-                //check tile exists
-                int this_tile = *getTile((int[2]){y, x});
-                if (this_tile == 0) { continue; }
-
-                //check tile is on border or non-interactable tile
-                int next_tile;
-                try {
-                    next_tile = *getTile((int[2]){y + collapseVec[1], x + collapseVec[0]});
-                    if (next_tile != 0 && next_tile != this_tile) { continue; }
-                } catch (exception) {
+                //cout << "crnt tile: " << x << ", " << y << " - ";
+                //cout << "collapse tile: " << x+collapse_x << ", " << y+collapse_y << "\n\t- ";
+                //check tile has value
+                int this_tile = *getTile(y, x);
+                if (this_tile == 0) {
+                    //cout << "crnt tile doesnt have value\n";
                     continue;
                 }
 
-                // don't need to re-fetch next_tile as code will be continued if next_tile err'd
+                //check tile is on border
+                int next_tile;
+                //cout << "attempting fetch of next tile\n\t- ";
+                if (y + collapse_y < 0 or y + collapse_y > 3 or x + collapse_x < 0 or x + collapse_x > 3) {
+                    //cout << "next tile is border\n";
+                    continue;
+                }
 
-                if (next_tile == this_tile) {
-                    *getTile((int[2]){y + collapseVec[1], x + collapseVec[0]}) = this_tile * 2;
-                    *getTile((int[2]){y, x}) = 0;
+                // check tile is on non-collapsable tile
+                next_tile = *getTile(y + collapse_y, x + collapse_x);
+                if (next_tile != 0 && next_tile != this_tile) {
+                    //cout << "next tile has different value\n";
+                    continue;
+                }
+
+                // move tile if next is empty
+                if (next_tile == 0) {
+                    *getTile(y + collapse_y, x + collapse_x) = this_tile;
+                    *getTile(y, x) = 0;
                     ++changed_tiles;
+                    //cout << "moved tile to 0\n";
+                }
+
+                // collapse tiles if same value
+                if (next_tile == this_tile) {
+                    *getTile(y + collapse_y, x + collapse_x) = this_tile * 2;
+                    *getTile(y, x) = 0;
+                    ++changed_tiles;
+                    //cout << "collapsed tiles\n";
                 }
                 
             }
         }
         return changed_tiles != 0;
     }
-    void fullCollapseInDir(int collapseVec[2]) {
+    void fullCollapseInDir(int x, int y) {
         // runs collapseInDir until no more collapsing can be done, should never require more than 4 collapses
         for (int i=0; i < 4; i++) {
-            if (!collapseInDir(collapseVec)) {break;}
+            if (!collapseInDir(x, y)) {break;}
         }
     }
 
     void inputUp() {
-        fullCollapseInDir((int[2]){0, -1});
+        fullCollapseInDir(0, -1);
     }
     void inputDown() {
-        fullCollapseInDir((int[2]){0, 1});
+        fullCollapseInDir(0, 1);
     }
     void inputLeft() {
-        fullCollapseInDir((int[2]){-1, 0});
+        fullCollapseInDir(-1, 0);
     }
     void inputRight() {
-        fullCollapseInDir((int[2]){1, 0});
+        fullCollapseInDir(1, 0);
     }
 
     void draw() {
         for (int y = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++) {
-                cout << board[y][x] << '\t';
+                int tile = *getTile(y, x);
+                cout << "\u001b[" << ((tile != 0) ? "1;" : "") << to_string(30 + (tile / (2048 / 9))) << "m" << board[y][x] << "\t" << "\u001b[0m";
             }
             cout << "\n";
         }
+    }
+
+    int sum() {
+        int sum = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++) {
+                sum += *getTile(y, x);
+            }
+        }
+        return sum;
     }
 };
 
@@ -116,46 +169,48 @@ int main() {
     myBoard.newRandTile();
     myBoard.newRandTile();
 
+    cout << "Welcome to 2048!\nPress Any Key to Start";
+    while (!_kbhit()) {}
+    cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\u001b[1J";
+    cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\u001b[1J";
+    myBoard.draw();
+
     while (running) {
-        cout << "2048: \n";
-        myBoard.draw();
-        cout << "Your Move [wasd to move, p to quit]: ";
+        if (_kbhit() != 0) {
+            // get and verify user input
+            char user_input = _getch();
+            if (!(user_input == 'w' or user_input == 'a' or user_input == 's' or user_input == 'd' or user_input == 'p')) {
+                cout << user_input;
+                continue;
+            }
 
-        string user_input;
-        cin >> user_input;
+            if (user_input == 'w') {
+                myBoard.inputUp();
+            } else if (user_input == 'a') {
+                myBoard.inputLeft();
+            } else if (user_input == 's') {
+                myBoard.inputDown();
+            } else if (user_input == 'd') {
+                myBoard.inputRight();
+            } if (user_input == 'p') {
+                cout << "Quiting...";
+                running = false;
+                return 0;
+            }
 
-        //user_input = user_input[1];
+            if (myBoard.newRandTile()) {
+                cout << "\n\nHaha you lost, dummy\nScore: " << to_string(myBoard.sum()) << "\nPress enter to acknowledge";
+                string _;
+                cin >> _;
+                running = false;
+                return 0;
+            }
 
-        if (user_input == "w") {
-            myBoard.inputUp();
-        } else if (user_input == "a") {
-            myBoard.inputLeft();
-        } else if (user_input == "s") {
-            myBoard.inputDown();
-        } else if (user_input == "d") {
-            myBoard.inputRight();
-        } if (user_input == "p") {
-            cout << "Quiting...";
-            running = false;
-            break;
+            cout << "\u001b[1J";
+            myBoard.draw();
         }
 
-        myBoard.newRandTile();
-
-        cout << "\n\n";
     }
-
     return 0;
 
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
