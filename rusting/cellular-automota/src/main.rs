@@ -5,24 +5,33 @@ pub mod maths;
 pub mod board;
 use crate::board::Board;
 
+pub mod gui;
+use crate::gui::Changer;
+
+trait Renderable {
+    fn render(&self);
+}
+
 enum UpdateMode {
     Menu,
     Game,
     Pause
 }
 
-struct Game {
+struct Game<'a> {
     update_mode:UpdateMode,
     board: Board,
-    camera_pos: Vec2
+    camera_pos: Vec2,
+    changers: Vec<Changer<'a, f32>>
 }
 
-impl Game {
+impl Game<'_> {
     fn new() -> Self {
         Game {
             update_mode: UpdateMode::Menu,
             board: Board::new(),
-            camera_pos: Vec2::ZERO
+            camera_pos: Vec2::ZERO,
+            changers: vec![]
         }
     }
 
@@ -51,6 +60,8 @@ impl Game {
         clear_background(GRAY);
 
         self.board.render(&self.camera_pos);
+        // self.board.debug_render(&self.camera_pos);
+        draw_text("test", 10., 10., 64., BLUE);
     }
 
     async fn pause_update(&mut self) {

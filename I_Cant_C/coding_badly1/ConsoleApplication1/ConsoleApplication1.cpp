@@ -118,16 +118,25 @@ public:
                 
             }
         }
+        // returns True if collapse resulted in no change
         return changed_tiles != 0;
     }
     void fullCollapseInDir(int x, int y) {
+        // this does not follow standard 2048 solving functionality
         // runs collapseInDir until no more collapsing can be done, should never require more than 4 collapses
         for (int i=0; i < 4; i++) {
             if (!collapseInDir(x, y)) {break;}
         }
     }
 
+    void fallInDir(int x, int y) {
+        vector<vector<int>> new_board = board;
+        printf("new is old" + (&new_board == &board));
+        //std::cout(&"clog etsting");
+    }
+
     void inputUp() {
+        fallInDir(0, -1);
         fullCollapseInDir(0, -1);
     }
     void inputDown() {

@@ -1,0 +1,9 @@
+[package]
+name = "rust"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+three-d = "0.19.0"
+three-d-asset = { version = "0.10",features = ["png", "http"] }
+tokio = { version = "1.52.3", features = ["full"]}

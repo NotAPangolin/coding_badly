@@ -1,0 +1,125 @@
+// Entry point for non-wasm
+#[cfg(not(target_arch = "wasm32"))]
+#[tokio::main]
+async fn main() {
+    run().await;
+}
+
+use three_d::*;
+
+pub async fn run() {
+    let window = Window::new(WindowSettings {
+        title: "Shapes 2D!".to_string(),
+        max_size: Some((1280, 720)),
+        ..Default::default()
+    })
+    .unwrap();
+    let context = window.gl();
+    let scale_factor = window.device_pixel_ratio();
+    let (width, height) = window.size();
+
+    let mut rectangle = Gm::new(
+        Rectangle::new(
+            &context,
+            vec2(200.0, 200.0) * scale_factor,
+            degrees(45.0),
+            100.0 * scale_factor,
+            200.0 * scale_factor,
+        ),
+        ColorMaterial {
+            color: Srgba::RED,
+            ..Default::default()
+        },
+    );
+    let mut circle = Gm::new(
+        Circle::new(
+            &context,
+            vec2(500.0, 500.0) * scale_factor,
+            200.0 * scale_factor,
+        ),
+        ColorMaterial {
+            color: Srgba::BLUE,
+            ..Default::default()
+        },
+    );
+    let mut line = Gm::new(
+        Line::new(
+            &context,
+            vec2(0.0, 0.0) * scale_factor,
+            vec2(width as f32, height as f32) * scale_factor,
+            5.0 * scale_factor,
+        ),
+        ColorMaterial {
+            color: Srgba::GREEN,
+            ..Default::default()
+        },
+    );
+
+    // Example of using a texture with transparancy, first retrieve the texture that has an alpha channel.
+    let logo_rgba: CpuTexture =
+        three_d_asset::io::load_async(&["C:\\Users\\bmcca\\Documents\\Github\\coding_badly\\Evolution\\rust\\src\\assets\\logo_transparent.png"])
+            .await
+            .unwrap()
+            .deserialize("")
+            .unwrap();
+
+    // Then create a new transparent material with the texture.
+    let logo_material = ColorMaterial::new_transparent(
+        &context,
+        &CpuMaterial {
+            albedo_texture: Some(logo_rgba),
+            ..Default::default()
+        },
+    );
+
+    let logo = Gm::new(
+        Rectangle::new(
+            &context,
+            vec2(800.0, 200.0) * scale_factor,
+            degrees(0.0),
+            200.0 * scale_factor,
+            200.0 * scale_factor,
+        ),
+        logo_material,
+    );
+
+    window.render_loop(move |frame_input| {
+        for event in frame_input.events.iter() {
+            if let Event::MousePress {
+                button,
+                position,
+                modifiers,
+                ..
+            } = *event
+            {
+                if button == MouseButton::Left && !modifiers.ctrl {
+                    rectangle.set_center(position);
+                }
+                if button == MouseButton::Right && !modifiers.ctrl {
+                    circle.set_center(position);
+                }
+                if button == MouseButton::Left && modifiers.ctrl {
+                    let ep = line.end_point1();
+                    line.set_endpoints(position, ep);
+                }
+                if button == MouseButton::Right && modifiers.ctrl {
+                    let ep = line.end_point0();
+                    line.set_endpoints(ep, position);
+                }
+            }
+        }
+        frame_input
+            .screen()
+            .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
+            .render(
+                Camera::new_2d(frame_input.viewport),
+                line.into_iter()
+                    .chain(&rectangle)
+                    .chain(&circle)
+                    .chain(&logo),
+                &[],
+            );
+
+        FrameOutput::default()
+    });
+}
