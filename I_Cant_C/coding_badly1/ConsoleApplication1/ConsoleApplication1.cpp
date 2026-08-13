@@ -13,6 +13,7 @@ using namespace std;
 class Board2048 {
 private:
     vector<vector<int>> board;
+    int oob_tile = -1;
 
 public:
     Board2048() {
@@ -30,7 +31,12 @@ public:
     }
     int* getTile(int x, int y) {
         //cout << "Tile at [" << x << ", " << y << "] is '" << board[x][y] << "'\n";
-        return &board[x][y];
+        try {
+            return &board.at(x).at(y);
+        }
+        catch (...) {
+            return &oob_tile;
+        }
     }
 
     bool newRandTile() {
@@ -129,15 +135,67 @@ public:
         }
     }
 
-    void fallInDir(int x, int y) {
+    bool fallInDir(int collapse_x, int collapse_y) {
         vector<vector<int>> new_board = board;
-        printf("new is old" + (&new_board == &board));
-        //std::cout(&"clog etsting");
+
+        /*
+        Iterates through all tiles in 4x4 grid
+        attempts to collapse each tile to the next based on the :param collapseVec:, proceeding its collapse direction until finding a non-collapsable tile
+        returns whether or not any tiles were collapsed
+        */
+        int changed_tiles = 0;
+        for (int x = 0; x < 4; x++) {
+            for (int y = 0; y < 4; y++) {
+                //cout << "crnt tile: " << x << ", " << y << " - ";
+                //cout << "collapse tile: " << x+collapse_x << ", " << y+collapse_y << "\n\t- ";
+                //------------check tile has value------------
+                int this_tile = *getTile(x, y);
+                if (this_tile == 0) {
+                    //cout << "crnt tile doesnt have value\n";
+                    continue;
+                }
+
+                //------------find next tile------------
+                // we have: current tile position, crnt tile value
+                int next_tile;
+                int next2_tile;
+                int i = 0;
+
+                while (true) {
+                    i++;
+                    next_tile = *getTile(x + collapse_x * i, y + collapse_y * i);
+                    next2_tile = *getTile(x + collapse_x * (i + 1), y + collapse_y * (i + 1));
+
+                    bool next_is_collapsable = (next_tile == this_tile || next_tile == 0);
+                    bool next2_is_collapsable = (next2_tile == this_tile || next2_tile == 0);
+
+                    if (next_is_collapsable) {
+                        if (next2_is_collapsable) {
+                            continue;
+                        }
+                        new_board[x][y] = 0;
+                        new_board[x + collapse_x][y + collapse_y] = this_tile + next_tile;
+
+                        //*getTile(y + collapse_y, x + collapse_x) = this_tile * 2;
+                        //*getTile(y, x) = 0;
+
+                        ++changed_tiles;
+                        break;
+                    }
+                    else {
+                        break;
+                    }
+                }
+            }
+            // returns True if collapse resulted in no change
+            printf("new is old?: " + (&new_board == &board));
+            return changed_tiles != 0;
+        }
     }
 
     void inputUp() {
         fallInDir(0, -1);
-        fullCollapseInDir(0, -1);
+        //fullCollapseInDir(0, -1);
     }
     void inputDown() {
         fullCollapseInDir(0, 1);

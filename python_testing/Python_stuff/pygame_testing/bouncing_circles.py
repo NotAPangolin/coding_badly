@@ -46,6 +46,8 @@ def apply_physics(object):
     if type(object) != ball:
         running = False
         print('tried to apply physics to invalid object')
+
+    dt = clock.get_time()
     #motion, vertical then horizontal
     # if move goes below, land and bounce, same for above, else move
     if object.pos.y - object.vects.y * dt < object.radius:

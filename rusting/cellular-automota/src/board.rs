@@ -1,22 +1,39 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use ::rand::{prelude::*, random};
+use ::rand::{random};
 use macroquad::prelude::*;
 
 use crate::maths::Point;
+use crate::{CameraRenderable, ScreenRenderable};
+
+#[derive(Hash, Eq, PartialEq)]
+pub struct Tile {
+    data: i32
+}
 
 pub struct Board {
     data: HashMap<Point<i32>, bool>,
 
-    tile_size: f32
+    tile_size: f32,
+    border_size: f32,
+
+    neighborhood: [Point<i32>; 9] // todo, make flexible and allow for procedural generation of moore-like and other types
 }
 
 impl Board {
     pub fn new() -> Self {
         Board {
             data: HashMap::new(),
-            tile_size: 16f32
+            tile_size: 16.,
+            border_size: 1.,
+            neighborhood: [Point::new(-1, -1), Point::new(0, -1), Point::new(1, -1),
+                           Point::new(-1,  0), Point::new(0,  0), Point::new(1,  0),
+                           Point::new(-1,  1), Point::new(0, -1), Point::new(1,  1)]
         }
+    }
+
+    pub fn screen_to_tile(&self, screen_coord: (f32, f32)) -> Point<i32> {
+        Point { x: (screen_coord.0 / (self.tile_size + self.border_size)) as i32, y: (screen_coord.1 / (self.tile_size + self.border_size)) as i32 }
     }
 
     // pub fn get(self, coord: &Point<T>) -> bool {
@@ -39,97 +56,94 @@ impl Board {
         self.data.insert(coord, val);
     }  
 
-    pub fn rand_fill(&mut self) {
-        for x in 0..20 {
-            for y in 0..20 {
+    pub fn clear(&mut self) {
+        self.data.clear();
+    }
+
+    pub fn rand_fill(&mut self, size:i32) {
+        for x in 0..size {
+            for y in 0..size {
                 self.set(Point::new(x,y), random::<bool>());
             }
         }
     }
 
-    pub fn render(&self, render_offset: &Vec2) {
-        let height_in_tiles: f32 = screen_height() / (self.tile_size + 1.);
-        let width_in_tiles: f32 = screen_width() / (self.tile_size + 1.);
-        for x in -2..(width_in_tiles) as i32 {
-            for y in -2..(height_in_tiles) as i32 {
-                if self.get(x - (render_offset.x / self.tile_size) as i32, y - (render_offset.y / self.tile_size) as i32) {
+    pub fn get_population(&self) -> i32 {
+        self.data.len() as i32
+    }
+}
+impl CameraRenderable for Board {
+    fn render(&self, render_offset: &Vec2) {
+        let t_b_size = self.tile_size + self.border_size;
+        let s_height_in_tiles: f32 = screen_height() / (t_b_size);
+        let s_width_in_tiles: f32 = screen_width() / (t_b_size);
+
+        for x in -2..(s_width_in_tiles+2.) as i32 {
+            for y in -2..(s_height_in_tiles+2.) as i32 {
+                if self.get(x - (render_offset.x / t_b_size) as i32, y - (render_offset.y / t_b_size) as i32) {
                     draw_rectangle(
-                        x as f32 * self.tile_size + render_offset.x % self.tile_size,
-                        y as f32 * self.tile_size + render_offset.y % self.tile_size,
+                        x as f32 * t_b_size + (render_offset.x % t_b_size),
+                        y as f32 * t_b_size + (render_offset.y % t_b_size),
                         self.tile_size,
                         self.tile_size,
                         BLACK
                     );
                 }
             }
-        }
-        // for x in 0..20 {
-        //     for y in 0..20 {
-        //         draw_rectangle(
-        //             x as f32 * (self.tile_size+1.) + render_offset.x,
-        //             y as f32 * (self.tile_size+1.) + render_offset.y,
-        //             self.tile_size,
-        //             self.tile_size,
-        //             if self.get(&Point::new(x,y)) {WHITE} else {BLACK}
-        //         );
-        //     }
-        // }
-        // for x in -2..(screen_width() / (self.tile_size+1f32)).round() as i32 + 2 {
-        //     for y in -2..(screen_height() / (self.tile_size+1f32)).round() as i32 + 2 {
-        //         // let crnt_scrn_point = Vec2::new(
-        //         //     x as f32 * self.tile_size + render_offset.x,
-        //         //     y as f32 * self.tile_size + render_offset.y
-        //         // );
-
-        //         draw_rectangle(
-        //             x as f32 * self.tile_size + render_offset.x,
-        //             y as f32 * self.tile_size + render_offset.y,
-        //             self.tile_size,
-        //             self.tile_size,
-        //             if self.get(&Point::new(x,y)) {WHITE} else {BLACK}
-        //         );
-        //     }
-        // }
-        // for x in -2..(screen_width() / (self.tile_size + 1.)) as i32 + 2 {
-        //     for y in -2..(screen_height() / (self.tile_size + 1.)) as i32 + 2 {
-        //         // if self.get(&Point::new(x, y)) {
-        //         //     draw_rectangle(
-        //         //         x as f32 * self.tile_size + render_offset.x % self.tile_size,
-        //         //         y as f32 * self.tile_size + render_offset.y % self.tile_size,
-        //         //         self.tile_size,
-        //         //         self.tile_size,
-        //         //         if self.get(&Point::new(
-        //         //             x - (render_offset.x / (self.tile_size + 1.)).round() as i32,
-        //         //             y - (render_offset.y / (self.tile_size + 1.)).round() as i32
-        //         //         )) {WHITE} else {BLACK}
-        //         //     );
-        //         // }
-        //         // for x in range(cam_offset[0] // self.tile_size, (cam_offset[0] + surf.get_width()) // self.tile_size + 1):
-        //         //     for y in range(cam_offset[1] // self.tile_size, (cam_offset[1] + surf.get_height()) // self.tile_size + 1):
-        //         //         loc = str(x) + ';' + str(y)
-        //         //         if loc in self.tilemap:
-        //         //             tile = self.tilemap[loc]
-        //         //             surf.blit(self.game.assets[tile['id']][tile['variant']],
-        //         // (tile['pos'][0] * self.tile_size - cam_offset[0],
-        //         // tile['pos'][1] * self.tile_size - cam_offset[1]))
-
-        //         for x in ((render_offset.x / self.tile_size) as i32 .. ((render_offset.x + screen_width()) / (self.tile_size + 1.)) as i32) {
-        //             for y in ((render_offset.y / self.tile_size) as i32 .. ((render_offset.y + screen_height()) / (self.tile_size + 1.)) as i32) {
-        //                 if self.get(&Point::new(x,y)) {
-        //                     draw_rectangle(
-        //                         x as f32 * self.tile_size + render_offset.x % self.tile_size,
-        //                         y as f32 * self.tile_size + render_offset.y % self.tile_size,
-        //                         self.tile_size,
-        //                         self.tile_size,
-        //                         BLACK
-        //                     );
-        //                 }
-        //             }
-        //         }
-        //     }
-        
+        }        
     }
-    // pub fn debug_render(&self, render_offset: &Vec2) {
-    //     draw_text("test", 0., 0., 16., BLUE);
-    // }
+    fn debug_render(&self, render_offset: &Vec2) {
+        let t_b_size = self.tile_size + self.border_size;
+        let s_height_in_tiles: f32 = screen_height() / (t_b_size);
+        let s_width_in_tiles: f32 = screen_width() / (t_b_size);
+
+        for x in -2..(s_width_in_tiles+2.) as i32 {
+            for y in -2..(s_height_in_tiles+2.) as i32 {
+                draw_text(
+                    self.get(x - (render_offset.x / t_b_size) as i32, y - (render_offset.y / t_b_size) as i32).to_string(),
+                    x as f32 * t_b_size + (render_offset.x % t_b_size),
+                    y as f32 * t_b_size + (render_offset.y % t_b_size),
+                    self.tile_size,
+                    WHITE
+                );
+            }
+        }
+    }
+}
+
+//----------------------------------------------Rule Implementing---------------------------------------------------
+impl Board {
+    pub fn iter(&mut self) {
+        // make buffer
+        let mut buffer = self.data.clone();
+
+        //this system could be improved by converting tile_to_check to a struct-level system which is updated rather than recalced each frame
+
+        // number of points within the current data * size of points & int to store * average number of tiles to check per tile in data
+        let mut tiles_to_check: HashMap<Point<i32>, (bool, i32)> = HashMap::with_capacity(self.data.len() * (size_of::<i32>() + size_of::<Point<i32>>()) * 4);
+
+        // check every living tile
+        for living_tile in buffer.keys() {
+            // add adjacent non-living tiles to be checked
+            for offset in self.neighborhood {
+                // tiles_to_check.insert(*living_tile + offset);
+                // add tile to checked, and increment it's count of living neighbors, because thats how we got here
+                tiles_to_check.entry(*living_tile + offset).or_insert(((offset.x == 0 && offset.y == 0), 0)).1 += 1;
+            }
+        }
+
+        for (tile, (is_alive, neighbors)) in tiles_to_check {
+            if is_alive {
+                if neighbors != 3 && neighbors != 4 { // will include self, so up check by 1
+                    self.set(tile, false);
+                    // *buffer.get_mut(&tile).unwrap() = false;
+                }
+            } else {
+                if neighbors == 3 {
+                    self.set(tile, true);
+                    // *buffer.get_mut(&tile).unwrap() = false;
+                }
+            }
+        }
+    }
 }

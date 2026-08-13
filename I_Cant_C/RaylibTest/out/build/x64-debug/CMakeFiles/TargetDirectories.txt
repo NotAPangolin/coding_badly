@@ -1,3 +1,0 @@
-C:/Users/bmcca/Documents/Github/coding_badly/I_Cant_C/RaylibTest/out/build/x64-debug/CMakeFiles/RaylibTest.dir
-C:/Users/bmcca/Documents/Github/coding_badly/I_Cant_C/RaylibTest/out/build/x64-debug/CMakeFiles/edit_cache.dir
-C:/Users/bmcca/Documents/Github/coding_badly/I_Cant_C/RaylibTest/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
