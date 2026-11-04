@@ -1,0 +1,33 @@
+    Employee emp3;
+    emp3.setValsFromInput();
+
+    emp3.printWage("emp3", 2);
+
+
+
+void Employee::setValsFromInput() {
+    int newBS;
+    int newHR;
+    while (true) {
+        cout << "Enter a base salary:" << endl;
+        cin >> newBS;
+        try {
+            this->setBaseSalary(newBS);
+        } catch (invalid_argument) {
+            cout << "Please enter a value greater than 0" << endl;
+            continue;
+        }
+        break;
+    }
+    while (true) {
+        cout << "Enter an hourly rate:" << endl;
+        cin >> newHR;
+        try {
+            this->setHourlyRate(newHR);
+        } catch (invalid_argument) {
+            cout << "Please enter a value greater than 0" << endl;
+            continue;
+        }
+        break;
+    }
+}

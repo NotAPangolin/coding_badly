@@ -170,7 +170,7 @@ int loadInventory(const string& filename, Product inventory[], int maxSize) {
     // loop through and read in to inventory
     int count = 0;
     do {
-        inventoryFile >> inventory[count].code >> inventory[count].name >>inventory[count].price >> inventory[count].quantity;
+        inventoryFile >> inventory[count].code >> inventory[count].name >> inventory[count].price >> inventory[count].quantity;
         if (inventoryFile.eof()) {break;}
 
         count++;
